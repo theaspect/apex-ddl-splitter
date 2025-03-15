@@ -44,16 +44,21 @@ fun main(vararg args: String) {
         entry.deleteIfExists()
     }
 
-    parsed.entries.forEachIndexed { index, (text, type) ->
-        println("Writing ${type.fileName}")
-        val outputFile = File(output, type.fileName)
+    FileOutputStream(File(output, "dict.sql")).bufferedWriter().use { dict ->
 
-        if (outputFile.exists()) {
-            throw IllegalArgumentException("File already exists $outputFile")
-        }
+        parsed.entries.forEachIndexed { index, (text, type) ->
+            println("Writing ${type.fileName}")
+            val outputFile = File(output, type.fileName)
 
-        FileOutputStream(outputFile).bufferedWriter().use {
-            it.write("-- Order $index\n" + text.trim())
+            if (outputFile.exists()) {
+                throw IllegalArgumentException("File already exists $outputFile")
+            }
+
+            dict.write("-- ${type.fileName}\n")
+
+            FileOutputStream(outputFile).bufferedWriter().use {
+                it.write(text.trim())
+            }
         }
     }
 }
