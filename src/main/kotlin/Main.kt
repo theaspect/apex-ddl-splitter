@@ -1,13 +1,11 @@
 package com.blzr
 
-import me.alllex.parsus.parser.*
+import me.alllex.parsus.parser.getOrElse
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createDirectory
-import kotlin.io.path.createParentDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.system.exitProcess
@@ -46,7 +44,7 @@ fun main(vararg args: String) {
         entry.deleteIfExists()
     }
 
-    for ((text, type) in parsed) {
+    parsed.entries.forEachIndexed { index, (text, type) ->
         println("Writing ${type.fileName}")
         val outputFile = File(output, type.fileName)
 
@@ -55,7 +53,7 @@ fun main(vararg args: String) {
         }
 
         FileOutputStream(outputFile).bufferedWriter().use {
-            it.write(text.trim())
+            it.write("-- Order $index\n" + text.trim())
         }
     }
 }
