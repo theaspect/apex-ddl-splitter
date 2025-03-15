@@ -1,4 +1,4 @@
-package com.blzr
+package me.blzr.apex
 
 sealed class Ora {
     data class CreateTable(override val name: String, override val fileName: String = "table ${name.lowercase()}.sql") : Ora()

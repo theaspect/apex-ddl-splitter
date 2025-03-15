@@ -1,4 +1,4 @@
-package com.blzr
+package me.blzr.apex
 
 import me.alllex.parsus.parser.getOrElse
 import java.io.File
@@ -15,7 +15,7 @@ fun main(vararg args: String) {
         1 -> args[0] to "${args[0].let { if (it.endsWith(".sql")) it.dropLast(4) else it }}/out/"
         2 -> args[0] to args[1]
         else -> {
-            println("input.sql [out folder]")
+            println("apex-ddl-splitter input.sql [out folder]")
             exitProcess(0)
         }
     }

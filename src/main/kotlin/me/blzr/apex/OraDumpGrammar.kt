@@ -1,4 +1,4 @@
-package com.blzr
+package me.blzr.apex
 
 import me.alllex.parsus.parser.Grammar
 import me.alllex.parsus.parser.choose
