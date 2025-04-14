@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "me.blzr"
-version = "1.0-SNAPSHOT"
+version = "1.1"
 
 repositories {
     mavenCentral()
@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     implementation("me.alllex.parsus:parsus-jvm:0.6.1")
+    implementation("info.picocli:picocli:4.7.6")
 
     testImplementation(kotlin("test"))
 }
