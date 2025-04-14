@@ -46,7 +46,7 @@ class OraDumpGrammar() : Grammar<Ora>(ignoreCase = true, debugMode = true) {
     val sequence = literalToken("sequence")
 
     val quote = literalToken("\"")
-    val name = regexToken("\\w+")
+    val name = regexToken("[\\w$]+")
     val remaining = regexToken(Regex(".*", RegexOption.DOT_MATCHES_ALL))
 
     val quoted by -quote * ref(::name) * -quote map { it.text }

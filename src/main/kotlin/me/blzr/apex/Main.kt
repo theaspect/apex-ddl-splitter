@@ -1,6 +1,9 @@
 package me.blzr.apex
 
 import me.alllex.parsus.parser.getOrElse
+import picocli.CommandLine
+import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -10,57 +13,78 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.system.exitProcess
 
-fun main(vararg args: String) {
-    val (input, output) = when (args.size) {
-        1 -> args[0] to "${args[0].let { if (it.endsWith(".sql")) it.dropLast(4) else it }}/out/"
-        2 -> args[0] to args[1]
-        else -> {
-            println("apex-ddl-splitter input.sql [out folder]")
-            exitProcess(0)
+@Command(name = "apex-ddl-splitter", version = ["1.1"], mixinStandardHelpOptions = true)
+class Main : Runnable {
+    @Option(names = ["-i", "--input"], description = ["Input SQL file"])
+    lateinit var input: String
+
+    @Option(names = ["-o", "--output"], description = ["Output folder. By default, './out'"])
+    var output: String? = null
+
+    @Option(names = ["-s", "--split"], description = ["Split. By default, '\\s*;$'", "Previous Oracle used '^/$'"])
+    var split: String = "\\s*;$"
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val exitCode: Int = CommandLine(Main()).execute(*args)
+            exitProcess(exitCode)
         }
     }
 
-    val ins = FileInputStream(input)
+    override fun run() {
+        output = output ?: ((if (input.endsWith(".sql")) input.dropLast(4) else input) + "/out/")
 
-    val text = ins.bufferedReader().readText()
+        val ins = FileInputStream(input)
 
-    val nodes = text.split(Regex("^/$", RegexOption.MULTILINE)).filter { it.isNotBlank() }
-    println("We have ${nodes.size} nodes")
+        val text = ins.bufferedReader().readText()
 
-    val parser = OraDumpGrammar()
+        val nodes = text.split(Regex(split, RegexOption.MULTILINE)).filter { it.isNotBlank() }
+        println("We have ${nodes.size} nodes")
 
-    val parsed: Map<String, Ora> = nodes.associateWith { node ->
-        parser.parse(node).getOrElse {
-            println(node)
-            throw IllegalArgumentException(it.toString())
-        }
-    }
+        val parser = OraDumpGrammar()
 
-    val outputPath = Path(output).createDirectories()
-    println("Create $outputPath")
-
-    outputPath.listDirectoryEntries("*.sql").forEach { entry ->
-        println("Delete $entry")
-        entry.deleteIfExists()
-    }
-
-    FileOutputStream(File(output, "dict.sql")).bufferedWriter().use { dict ->
-
-        parsed.entries.forEachIndexed { index, (text, type) ->
-            println("Writing ${type.fileName}")
-            val outputFile = File(output, type.fileName)
-
-            if (outputFile.exists()) {
-                throw IllegalArgumentException("File already exists $outputFile")
+        val parsed: Map<String, Ora> = nodes.associateWith { node ->
+            parser.parse(node).getOrElse {
+                println(node)
+                throw IllegalArgumentException(it.toString())
             }
+        }
 
-            dict.write("-- ${type.fileName}\n")
+        val outputPath = Path(output!!).createDirectories()
+        println("Create $outputPath")
 
-            FileOutputStream(outputFile).bufferedWriter().use {
-                it.write(text.trim())
+        outputPath.listDirectoryEntries("*.sql").forEach { entry ->
+            println("Delete $entry")
+            entry.deleteIfExists()
+        }
+
+        FileOutputStream(File(output, "dict.sql")).bufferedWriter().use { dict ->
+
+            parsed.entries.forEachIndexed { index, (text, type) ->
+                println("Writing ${type.fileName}")
+                var outputFile = File(output, type.fileName)
+
+                if (outputFile.exists()) {
+                    for (i in 1..10) {
+                        val anotherName = File(output, type.fileName.dropLast(".sql".length) + "-duplicate-$i.sql")
+
+                        if (i == 10) {
+                            throw IllegalArgumentException("File already exists $outputFile")
+                        } else if (!anotherName.exists()) {
+                            outputFile = anotherName
+                            break
+                        }
+                    }
+                }
+
+                dict.write("-- ${type.fileName}\n")
+
+                FileOutputStream(outputFile).bufferedWriter().use {
+                    it.write(text.trim())
+                }
             }
         }
     }
 }
-
 
