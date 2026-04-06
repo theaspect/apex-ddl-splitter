@@ -18,4 +18,7 @@ Optionally, you can provide the output folder as a second parameter
 
 ## Native compilation
 
-Open vscode developer command prompt and run `gradlew.bat nativeCompile`. Result will be in `build/native/nativeCompile/apex-ddl-splitter.ext`
+Gather metadata from linux
+`java -jar -agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image build/libs/apex-ddl-splitter-1.2-all.jar -i schema.sql`
+
+Open vscode developer command prompt and run `gradlew.bat nativeCompile`. Result will be in `build/native/nativeCompile/apex-ddl-splitter.exe`

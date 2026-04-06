@@ -22,7 +22,7 @@ class Main : Runnable {
         OLD
     }
 
-    @Option(names = ["-i", "--input"], description = ["Input SQL file"])
+    @Option(names = ["-i", "--input"], required = true, description = ["Input SQL file"])
     lateinit var input: String
 
     @Option(names = ["-o", "--output"], description = ["Output folder. By default, input name + '/out/'"])
